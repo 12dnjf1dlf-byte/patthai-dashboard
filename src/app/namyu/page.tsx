@@ -65,7 +65,7 @@ function processRaw(rows: NamyuRow[], adCosts: AdCostRow[]) {
   });
   const topMenuData = Object.entries(productMap)
     .sort(([, a], [, b]) => b.sales - a.sales)
-    .slice(0, 10)
+    .slice(0, 20)
     .map(([menu, { sales, orders }]) => ({ menu, value: sales, orders }));
 
   return { totalSales, totalOrders, avgPrice, growthRate, monthlyData, categoryData, topMenuData };

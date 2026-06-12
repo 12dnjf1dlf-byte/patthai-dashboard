@@ -16,13 +16,21 @@ type Props = {
   data: { menu: string; value: number; orders: number }[];
 };
 
+// 긴 이름 줄임 처리
+function truncate(str: string, max = 16): string {
+  return str.length > max ? str.slice(0, max) + "…" : str;
+}
+
 export default function TopMenuChart({ data }: Props) {
+  const barHeight = 32;
+  const chartHeight = data.length * barHeight + 20;
+
   return (
     <div className="rounded-2xl p-6" style={{ backgroundColor: "#1C1E2E" }}>
       <p className="mb-4 text-sm font-semibold" style={{ color: "rgba(255,255,255,0.87)" }}>
-        메뉴별 TOP 10
+        메뉴별 TOP 20
       </p>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart
           layout="vertical"
           data={data}
@@ -44,10 +52,11 @@ export default function TopMenuChart({ data }: Props) {
           <YAxis
             type="category"
             dataKey="menu"
-            tick={{ fill: "rgba(255,255,255,0.87)", fontSize: 12 }}
+            tickFormatter={(v) => truncate(v)}
+            tick={{ fill: "rgba(255,255,255,0.87)", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
-            width={80}
+            width={130}
           />
           <Tooltip
             formatter={(v) => [formatKRWShort(Number(v)), "매출"]}
@@ -55,13 +64,16 @@ export default function TopMenuChart({ data }: Props) {
             labelStyle={{ color: "rgba(255,255,255,0.87)" }}
             itemStyle={{ color: "#00CFAA" }}
           />
-          <Bar dataKey="value" radius={[0, 6, 6, 0]} fill="url(#topMenuGrad)">
+          <Bar dataKey="value" radius={[0, 6, 6, 0]} fill="url(#topMenuGrad)" barSize={20}>
             <LabelList
               dataKey="orders"
               position="right"
               formatter={(v) => `${v}건`}
               style={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }}
             />
+            {data.map((_, i) => (
+              <Cell key={i} fill="url(#topMenuGrad)" />
+            ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
