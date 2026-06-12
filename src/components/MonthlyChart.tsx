@@ -53,7 +53,7 @@ export default function MonthlyChart({ data }: Props) {
             <LabelList
               dataKey="value"
               position="top"
-              formatter={(v: number) => `${(v / 1_000_000).toFixed(1)}백만`}
+              formatter={(v) => `${(Number(v) / 1_000_000).toFixed(1)}백만`}
               style={{ fill: "rgba(255,255,255,0.7)", fontSize: 11 }}
             />
             {data.map((_, i) => (

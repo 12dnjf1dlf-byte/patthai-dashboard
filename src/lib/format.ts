@@ -28,6 +28,9 @@ export const CHANNEL_COLORS: Record<string, string> = {
   배달: "#7B70EE",
   오프라인: "#00CFAA",
   온라인: "#4A9EFF",
+  판매자배송: "#7B70EE",
+  로켓그로스: "#00CFAA",
+  로켓배송: "#4A9EFF",
 };
 
 export const CATEGORY_COLORS = [
