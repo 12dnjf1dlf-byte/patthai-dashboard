@@ -8,11 +8,18 @@ type User = {
   tabs: string[]; // 허용 탭: "coupang" | "namyu" | "order"
 };
 
+const USERS: User[] = [
+  { username: "cxzwhdfhr", password: "whdfhr1!", name: "관리자", tabs: ["coupang", "namyu", "order"] },
+  { username: "바질클럽", password: "qkwlf1!", name: "바질클럽", tabs: ["coupang"] },
+  { username: "남유에프엔씨", password: "skadb1!", name: "남유에프엔씨", tabs: ["namyu", "order"] },
+];
+
 function getUsers(): User[] {
   try {
-    return JSON.parse(process.env.DASHBOARD_USERS ?? "[]");
+    const env = process.env.DASHBOARD_USERS;
+    return env ? JSON.parse(env) : USERS;
   } catch {
-    return [];
+    return USERS;
   }
 }
 
