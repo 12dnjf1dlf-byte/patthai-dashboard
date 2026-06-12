@@ -82,7 +82,8 @@ export default function AdTable({ data }: Props) {
   const groups: CampaignGroup[] = useMemo(() => {
     const filtered = enriched.filter((r) => {
       const q = search.toLowerCase();
-      const matchSearch = !q || r.캠페인명.toLowerCase().includes(q) || r.키워드.toLowerCase().includes(q) || r.광고노출지면.toLowerCase().includes(q);
+      // 검색은 키워드·노출지면만 (캠페인명 제외 → 그룹 내 행 단위 필터링)
+      const matchSearch = !q || r.키워드.toLowerCase().includes(q) || r.광고노출지면.toLowerCase().includes(q);
       const matchZone = filterZone === "전체" || r.광고노출지면 === filterZone;
       return matchSearch && matchZone;
     });
@@ -167,7 +168,7 @@ export default function AdTable({ data }: Props) {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>🔍</span>
             <input
               type="text"
-              placeholder="캠페인/키워드 검색..."
+              placeholder="키워드/노출지면 검색..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="rounded-lg py-1.5 pl-8 pr-3 text-sm outline-none"
