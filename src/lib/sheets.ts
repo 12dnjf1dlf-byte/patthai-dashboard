@@ -169,6 +169,77 @@ export type AdCostRow = {
   광고비: number;
 };
 
+export type AdRow = {
+  캠페인명: string;
+  광고노출지면: string;
+  키워드: string;
+  노출수: number;
+  클릭수: number;
+  광고비: number;
+  클릭률: number;
+  전환매출14: number;
+  주문수14: number;
+};
+
+export async function getCoupangAdData(): Promise<AdRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+
+  // 헤더 행 읽기
+  const headerRes = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "바질클럽 광고!1:1",
+  });
+  const headers: string[] = (headerRes.data.values?.[0] ?? []).map((h) => String(h).trim());
+
+  function col(name: string) {
+    const idx = headers.findIndex((h) => h.includes(name));
+    return idx;
+  }
+
+  const iCampaign = col("캠페인명");
+  const iZone = col("노출 지면") !== -1 ? col("노출 지면") : col("광고 노출");
+  const iKeyword = col("키워드");
+  const iImpression = col("노출수");
+  const iClick = col("클릭수");
+  const iAdCost = col("광고비");
+  const iCtr = col("클릭률");
+  // 14일 전환매출액 - 여러 표기 시도
+  const iSales14 = (() => {
+    const candidates = ["총 전환매출액(14일)", "전환매출액(14일)", "전환매출(14", "14일 매출"];
+    for (const c of candidates) { const i = col(c); if (i !== -1) return i; }
+    return -1;
+  })();
+  const iOrder14 = (() => {
+    const candidates = ["총 주문수(14일)", "주문수(14일)", "주문(14"];
+    for (const c of candidates) { const i = col(c); if (i !== -1) return i; }
+    return -1;
+  })();
+
+  // 데이터 행 읽기
+  const dataRes = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "바질클럽 광고!A2:AZ",
+  });
+  const rows = dataRes.data.values ?? [];
+
+  const n = (r: string[], i: number) =>
+    i >= 0 ? Number(String(r[i] ?? "0").replace(/,/g, "")) : 0;
+
+  return rows
+    .map((r) => ({
+      캠페인명: iCampaign >= 0 ? String(r[iCampaign] ?? "") : "",
+      광고노출지면: iZone >= 0 ? String(r[iZone] ?? "") : "",
+      키워드: iKeyword >= 0 ? String(r[iKeyword] ?? "") : "",
+      노출수: n(r, iImpression),
+      클릭수: n(r, iClick),
+      광고비: n(r, iAdCost),
+      클릭률: n(r, iCtr),
+      전환매출14: n(r, iSales14),
+      주문수14: n(r, iOrder14),
+    }))
+    .filter((r) => r.캠페인명 !== "");
+}
+
 export async function getCoupangAdCost(): Promise<AdCostRow[]> {
   const sheets = google.sheets({ version: "v4", auth: getAuth() });
 

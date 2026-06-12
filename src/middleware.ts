@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const TAB_ROUTES: Record<string, string> = {
   "/coupang": "coupang",
+  "/ad": "ad",
   "/namyu": "namyu",
   "/order": "order",
 };
@@ -24,6 +25,7 @@ export function middleware(req: NextRequest) {
         // 권한 없으면 첫 번째 허용 탭으로
         const firstTab = user.tabs?.[0];
         const dest = firstTab === "coupang" ? "/coupang"
+          : firstTab === "ad" ? "/ad"
           : firstTab === "namyu" ? "/namyu"
           : firstTab === "order" ? "/order"
           : "/login";

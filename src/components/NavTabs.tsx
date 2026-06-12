@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 const ALL_TABS = [
   { label: "바질클럽 쿠팡", href: "/coupang", key: "coupang" },
+  { label: "바질클럽 광고", href: "/ad", key: "ad" },
   { label: "남유에프엔씨 쿠팡", href: "/namyu", key: "namyu" },
   { label: "남유쿠팡 발주기준", href: "/order", key: "order" },
 ];

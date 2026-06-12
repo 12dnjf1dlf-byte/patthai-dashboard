@@ -9,8 +9,8 @@ type User = {
 };
 
 const USERS: User[] = [
-  { username: "cxzwhdfhr", password: "1234", name: "관리자", tabs: ["coupang", "namyu", "order"] },
-  { username: "바질클럽", password: "1234", name: "바질클럽", tabs: ["coupang"] },
+  { username: "cxzwhdfhr", password: "1234", name: "관리자", tabs: ["coupang", "ad", "namyu", "order"] },
+  { username: "바질클럽", password: "1234", name: "바질클럽", tabs: ["coupang", "ad"] },
   { username: "남유에프엔씨", password: "1234", name: "남유에프엔씨", tabs: ["namyu", "order"] },
   { username: "남유네", password: "1234", name: "남유네", tabs: ["order"] },
 ];
