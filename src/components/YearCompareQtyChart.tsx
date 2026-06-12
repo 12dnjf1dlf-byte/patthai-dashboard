@@ -27,7 +27,7 @@ function GrowthLabel(props: { x?: number; y?: number; width?: number; index?: nu
   const color = rate >= 0 ? "#00CFAA" : "#F87171";
   const label = `${rate >= 0 ? "▲" : "▼"}${Math.abs(rate).toFixed(1)}%`;
   return (
-    <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={10} fill={color} fontWeight={700}>
+    <text x={x + width / 2} y={y - 18} textAnchor="middle" fontSize={10} fill={color} fontWeight={700}>
       {label}
     </text>
   );
