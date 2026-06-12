@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from "recharts";
 import { formatKRWShort } from "@/lib/format";
 
@@ -22,7 +23,7 @@ export default function MonthlyChart({ data }: Props) {
         월별 매출 추이
       </p>
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 24, right: 4, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#00CFAA" />
@@ -49,6 +50,12 @@ export default function MonthlyChart({ data }: Props) {
             itemStyle={{ color: "#00CFAA" }}
           />
           <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+            <LabelList
+              dataKey="value"
+              position="top"
+              formatter={(v: number) => `${(v / 1_000_000).toFixed(1)}백만`}
+              style={{ fill: "rgba(255,255,255,0.7)", fontSize: 11 }}
+            />
             {data.map((_, i) => (
               <Cell key={i} fill="url(#barGrad)" />
             ))}
