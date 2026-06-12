@@ -58,7 +58,10 @@ export default async function AdPage() {
     may매출 = coupangRows
       .filter((r) => {
         const m = String(r.월);
-        return m.includes("-05") || m.includes("/05") || m === "5월" || m === "05";
+        // "5월", "05월", "2026-05", "2026/05", "5", "05" 등 모든 형식 처리
+        const numMatch = m.match(/(\d+)월/) || m.match(/[-\/]0*(\d+)$/);
+        const num = numMatch ? Number(numMatch[1]) : Number(m);
+        return num === 5;
       })
       .reduce((s, r) => s + r.매출, 0);
   } catch (e) {
