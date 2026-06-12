@@ -147,7 +147,7 @@ export default async function CoupangPage() {
               className="mt-1 text-2xl font-bold"
               style={{ color: "rgba(255,255,255,0.87)" }}
             >
-              쿠팡 매출 현황
+              바질클럽 쿠팡 매출 현황
             </h1>
           </div>
         </div>
