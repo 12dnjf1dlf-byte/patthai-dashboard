@@ -5,7 +5,7 @@ import { AdRow } from "@/lib/sheets";
 import { formatKRWShort } from "@/lib/format";
 
 type Props = { data: AdRow[]; totalImpressions: number; avgCtr: number };
-type SortKey = keyof AdRow | "roas" | "cpc";
+type SortKey = keyof AdRow | "roas" | "cpc" | "비고";
 type SortDir = "asc" | "desc" | null;
 
 type EnrichedRow = AdRow & { roas: number; cpc: number };
