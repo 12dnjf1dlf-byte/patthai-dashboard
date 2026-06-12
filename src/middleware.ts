@@ -7,6 +7,7 @@ const TAB_ROUTES: Record<string, string> = {
   "/order": "order",
   "/nutralap": "nutralap",
   "/promidis": "promidis",
+  "/summary": "summary",
 };
 
 export function middleware(req: NextRequest) {
@@ -28,7 +29,7 @@ export function middleware(req: NextRequest) {
         const firstTab = user.tabs?.[0];
         const tabToRoute: Record<string, string> = {
           coupang: "/coupang", ad: "/ad", namyu: "/namyu",
-          order: "/order", nutralap: "/nutralap", promidis: "/promidis",
+          order: "/order", nutralap: "/nutralap", promidis: "/promidis", summary: "/summary",
         };
         const dest = firstTab ? (tabToRoute[firstTab] ?? "/login") : "/login";
         return NextResponse.redirect(new URL(dest, req.url));
