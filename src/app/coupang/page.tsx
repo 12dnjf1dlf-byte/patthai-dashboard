@@ -1,7 +1,7 @@
-import { getCoupangData, CoupangRow } from "@/lib/sheets";
-import { formatKRW, CATEGORY_COLORS } from "@/lib/format";
+import { getCoupangData, getCoupangAdCost, CoupangRow, AdCostRow } from "@/lib/sheets";
+import { formatKRW } from "@/lib/format";
 import KpiCard from "@/components/KpiCard";
-import MonthlyChart from "@/components/MonthlyChart";
+import CoupangMonthlyChart from "@/components/CoupangMonthlyChart";
 import ChannelChart from "@/components/ChannelChart";
 import CategoryPie from "@/components/CategoryPie";
 import WeeklyTrendChart from "@/components/WeeklyTrendChart";
@@ -10,19 +10,12 @@ import NavTabs from "@/components/NavTabs";
 
 export const revalidate = 3600;
 
-const SALES_METHOD_COLORS: Record<string, string> = {
-  판매자배송: "#7B70EE",
-  로켓그로스: "#00CFAA",
-  로켓배송: "#4A9EFF",
-};
-
 function parseMonth(월str: string): number {
-  // "2026년 4월" -> 4
   const match = 월str.match(/(\d+)월/);
   return match ? Number(match[1]) : 0;
 }
 
-function processRaw(rows: CoupangRow[]) {
+function processRaw(rows: CoupangRow[], adCosts: AdCostRow[]) {
   const totalSales = rows.reduce((s, r) => s + r.매출, 0);
   const totalOrders = rows.reduce((s, r) => s + r.주문수, 0);
   const avgPrice = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
@@ -41,9 +34,22 @@ function processRaw(rows: CoupangRow[]) {
     const m = parseMonth(r.월);
     if (m) monthlyMap[m] = (monthlyMap[m] ?? 0) + r.매출;
   });
+
+  // 광고비 맵 (월 번호 → 광고비)
+  const adCostMap: Record<number, number> = {};
+  adCosts.forEach((r) => {
+    const m = parseMonth(r.월);
+    if (m) adCostMap[m] = r.광고비;
+  });
+
+  // 월별 차트 데이터 (매출 + 광고비 + 비중)
   const monthlyData = Object.entries(monthlyMap)
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([m, v]) => ({ month: `${m}월`, value: v }));
+    .map(([m, 매출]) => {
+      const 광고비 = adCostMap[Number(m)] ?? 0;
+      const 광고비비중 = 매출 > 0 ? (광고비 / 매출) * 100 : 0;
+      return { month: `${m}월`, 매출, 광고비, 광고비비중 };
+    });
 
   // 판매방식별 매출
   const methodMap: Record<string, number> = {};
@@ -103,9 +109,10 @@ function processRaw(rows: CoupangRow[]) {
 
 export default async function CoupangPage() {
   let rows: CoupangRow[] = [];
+  let adCosts: AdCostRow[] = [];
   let error = "";
   try {
-    rows = await getCoupangData();
+    [rows, adCosts] = await Promise.all([getCoupangData(), getCoupangAdCost()]);
   } catch (e) {
     error = e instanceof Error ? e.message : "데이터를 불러올 수 없습니다.";
   }
@@ -121,11 +128,7 @@ export default async function CoupangPage() {
     weeklyData,
     methods,
     topMenuData,
-  } = processRaw(rows);
-
-  // 판매방식 색상을 CHANNEL_COLORS 형식으로 override
-  const methodColors = SALES_METHOD_COLORS;
-  void methodColors;
+  } = processRaw(rows, adCosts);
 
   return (
     <main className="min-h-screen p-6 md:p-10" style={{ backgroundColor: "#13141F" }}>
@@ -168,9 +171,9 @@ export default async function CoupangPage() {
         />
       </div>
 
-      {/* Monthly Chart */}
+      {/* 월별 매출 + 광고비 차트 */}
       <div className="mb-6">
-        <MonthlyChart data={monthlyData} />
+        <CoupangMonthlyChart data={monthlyData} />
       </div>
 
       {/* 판매방식별 + 카테고리 */}

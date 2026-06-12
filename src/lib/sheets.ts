@@ -77,3 +77,26 @@ export async function getCoupangData(): Promise<CoupangRow[]> {
     }))
     .filter((r) => r.매출 > 0);
 }
+
+export type AdCostRow = {
+  월: string;
+  광고비: number;
+};
+
+export async function getCoupangAdCost(): Promise<AdCostRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "쿠팡!V2:W13",
+  });
+
+  const rows = response.data.values ?? [];
+
+  return rows
+    .map((r) => ({
+      월: String(r[0] ?? ""),
+      광고비: Number(String(r[1] ?? "0").replace(/,/g, "")),
+    }))
+    .filter((r) => r.광고비 > 0);
+}
