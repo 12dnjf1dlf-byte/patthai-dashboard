@@ -1,4 +1,4 @@
-import { getCoupangAdData, AdRow } from "@/lib/sheets";
+import { getCoupangAdData, getCoupangData, AdRow } from "@/lib/sheets";
 import { formatKRW, formatKRWShort } from "@/lib/format";
 import KpiCard from "@/components/KpiCard";
 import NavTabs from "@/components/NavTabs";
@@ -50,9 +50,17 @@ function processAd(rows: AdRow[]) {
 
 export default async function AdPage() {
   let rows: AdRow[] = [];
+  let may매출 = 0;
   let error = "";
   try {
-    rows = await getCoupangAdData();
+    [rows] = await Promise.all([getCoupangAdData()]);
+    const coupangRows = await getCoupangData();
+    may매출 = coupangRows
+      .filter((r) => {
+        const m = String(r.월);
+        return m.includes("-05") || m.includes("/05") || m === "5월" || m === "05";
+      })
+      .reduce((s, r) => s + r.매출, 0);
   } catch (e) {
     error = e instanceof Error ? e.message : "데이터를 불러올 수 없습니다.";
   }
@@ -83,7 +91,8 @@ export default async function AdPage() {
       )}
 
       {/* KPI */}
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-6">
+        <KpiCard title="전체 매출 (5월)" value={formatKRW(may매출)} />
         <KpiCard title="총 광고비" value={formatKRW(totalAdCost)} />
         <KpiCard title="총 전환매출(14일)" value={formatKRW(totalSales14)} />
         <KpiCard title="ROAS" value={`${roas.toFixed(0)}%`} trend={roas >= 100 ? "positive" : "negative"} />
