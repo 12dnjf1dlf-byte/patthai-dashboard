@@ -3,7 +3,7 @@ import { formatKRW } from "@/lib/format";
 import KpiCard from "@/components/KpiCard";
 import YearCompareChart from "@/components/YearCompareChart";
 import YearCompareQtyChart from "@/components/YearCompareQtyChart";
-import TopMenuChart from "@/components/TopMenuChart";
+import ProductCompareTable from "@/components/ProductCompareTable";
 import NavTabs from "@/components/NavTabs";
 
 export const revalidate = 3600;
@@ -50,19 +50,29 @@ function processRaw(rows: NamyuOrderRow[]) {
       "2026": number;
     }[];
 
-  // 상품별 TOP 20 (전체 합산)
-  const productMap: Record<string, { sales: number; orders: number }> = {};
+  // 품목별 연도 비교
+  const productMap: Record<string, { qty25: number; qty26: number; months25: Set<number>; months26: Set<number> }> = {};
   rows.forEach((r) => {
-    if (!productMap[r.상품명]) productMap[r.상품명] = { sales: 0, orders: 0 };
-    productMap[r.상품명].sales += r.매출;
-    productMap[r.상품명].orders += r.수량;
+    if (!productMap[r.상품명]) productMap[r.상품명] = { qty25: 0, qty26: 0, months25: new Set(), months26: new Set() };
+    if (r.연도 === 2025) {
+      productMap[r.상품명].qty25 += r.수량;
+      productMap[r.상품명].months25.add(r.월);
+    } else {
+      productMap[r.상품명].qty26 += r.수량;
+      productMap[r.상품명].months26.add(r.월);
+    }
   });
-  const topMenuData = Object.entries(productMap)
-    .sort(([, a], [, b]) => b.sales - a.sales)
-    .slice(0, 20)
-    .map(([menu, { sales, orders }]) => ({ menu, value: sales, orders }));
+  const productTableData = Object.entries(productMap)
+    .sort(([, a], [, b]) => (b.qty25 + b.qty26) - (a.qty25 + a.qty26))
+    .map(([name, { qty25: q25, qty26: q26, months25, months26 }]) => ({
+      name,
+      qty25: q25,
+      qty26: q26,
+      avg25: months25.size > 0 ? q25 / months25.size : 0,
+      avg26: months26.size > 0 ? q26 / months26.size : 0,
+    }));
 
-  return { total25, total26, qty25, qty26, growthRate, monthlyData, qtyData, topMenuData };
+  return { total25, total26, qty25, qty26, growthRate, monthlyData, qtyData, productTableData };
 }
 
 export default async function OrderPage() {
@@ -74,7 +84,7 @@ export default async function OrderPage() {
     error = e instanceof Error ? e.message : "데이터를 불러올 수 없습니다.";
   }
 
-  const { total25, total26, qty25, qty26, growthRate, monthlyData, qtyData, topMenuData } =
+  const { total25, total26, qty25, qty26, growthRate, monthlyData, qtyData, productTableData } =
     processRaw(rows);
 
   return (
@@ -117,8 +127,8 @@ export default async function OrderPage() {
         <YearCompareQtyChart data={qtyData} />
       </div>
 
-      {/* TOP 20 상품 */}
-      <TopMenuChart data={topMenuData} />
+      {/* 품목별 수량 비교 */}
+      <ProductCompareTable data={productTableData} />
     </main>
   );
 }
