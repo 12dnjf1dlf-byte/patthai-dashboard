@@ -181,6 +181,78 @@ export type AdRow = {
   주문수14: number;
 };
 
+function parseYearMonth(str: string): { 월: number } {
+  // "2026년 1월" → 1
+  const m = str.match(/(\d+)년\s*(\d+)월/);
+  if (m) return { 월: Number(m[2]) };
+  // fallback: 기존 "20260101" 형식
+  if (str.length >= 6) return { 월: Number(str.slice(4, 6)) };
+  return { 월: 0 };
+}
+
+export type NutralabRow = NamyuRow;
+export type PromidisRow = NamyuRow;
+
+export async function getNutralabData(): Promise<NutralabRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "뉴트라랩 쿠팡!A2:Q",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => ({
+      월: parseYearMonth(String(r[0] ?? "")).월,
+      상품명: String(r[3] ?? ""),
+      카테고리: String(r[5] ?? ""),
+      매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
+      주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
+    }))
+    .filter((r) => r.매출 > 0 && r.월 > 0);
+}
+
+export async function getNutralabAdCost(): Promise<AdCostRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "뉴트라랩 쿠팡!V2:W13",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => ({ 월: String(r[0] ?? ""), 광고비: Number(String(r[1] ?? "0").replace(/,/g, "")) }))
+    .filter((r) => r.광고비 > 0);
+}
+
+export async function getPromidisData(): Promise<PromidisRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "프롬디스 쿠팡!A2:Q",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => ({
+      월: parseYearMonth(String(r[0] ?? "")).월,
+      상품명: String(r[3] ?? ""),
+      카테고리: String(r[5] ?? ""),
+      매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
+      주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
+    }))
+    .filter((r) => r.매출 > 0 && r.월 > 0);
+}
+
+export async function getPromidisAdCost(): Promise<AdCostRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "프롬디스 쿠팡!V2:W13",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => ({ 월: String(r[0] ?? ""), 광고비: Number(String(r[1] ?? "0").replace(/,/g, "")) }))
+    .filter((r) => r.광고비 > 0);
+}
+
 export async function getCoupangAdData(): Promise<AdRow[]> {
   const sheets = google.sheets({ version: "v4", auth: getAuth() });
 

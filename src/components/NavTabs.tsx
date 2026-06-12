@@ -9,6 +9,8 @@ const ALL_TABS = [
   { label: "바질클럽 광고", href: "/ad", key: "ad" },
   { label: "남유에프엔씨 쿠팡", href: "/namyu", key: "namyu" },
   { label: "남유쿠팡 발주기준", href: "/order", key: "order" },
+  { label: "뉴트라랩 쿠팡", href: "/nutralap", key: "nutralap" },
+  { label: "프롬디스 쿠팡", href: "/promidis", key: "promidis" },
 ];
 
 function getAllowedTabs(): string[] {
