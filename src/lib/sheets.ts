@@ -241,6 +241,38 @@ export async function getPromidisData(): Promise<PromidisRow[]> {
     .filter((r) => r.매출 > 0 && r.월 > 0);
 }
 
+export type PromidisFullRow = {
+  연도: number;
+  월: number;
+  상품명: string;
+  카테고리: string;
+  매출: number;
+  주문수: number;
+};
+
+export async function getPromidisFullData(): Promise<PromidisFullRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "프롬디스 쿠팡!A2:Q",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => {
+      const str = String(r[0] ?? "");
+      const m = str.match(/(\d{4})년\s*(\d+)월/);
+      return {
+        연도: m ? Number(m[1]) : 0,
+        월: m ? Number(m[2]) : 0,
+        상품명: String(r[3] ?? ""),
+        카테고리: String(r[5] ?? ""),
+        매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
+        주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
+      };
+    })
+    .filter((r) => r.매출 > 0 && r.연도 > 0 && r.월 > 0);
+}
+
 export async function getPromidisAdCost(): Promise<AdCostRow[]> {
   const sheets = google.sheets({ version: "v4", auth: getAuth() });
   const response = await sheets.spreadsheets.values.get({
