@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "바질클럽 매출 대시보드",
-  description: "바질클럽 매출 현황 대시보드",
+  title: "쿠팡 매출 대시보드",
+  description: "쿠팡 매출 현황 대시보드",
 };
 
 export default function RootLayout({

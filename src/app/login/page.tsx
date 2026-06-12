@@ -42,7 +42,7 @@ export default function LoginPage() {
           className="mb-2 text-xl font-bold"
           style={{ color: "rgba(255,255,255,0.87)" }}
         >
-          바질클럽 매출 대시보드
+          쿠팡 매출 대시보드
         </h1>
         <p className="mb-6 text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
           비밀번호를 입력하세요
