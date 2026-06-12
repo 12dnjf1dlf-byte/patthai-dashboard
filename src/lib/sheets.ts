@@ -61,7 +61,7 @@ export async function getCoupangData(): Promise<CoupangRow[]> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: "쿠팡!A2:I",
+    range: "바질클럽 쿠팡!A2:I",
   });
 
   const rows = response.data.values ?? [];
@@ -88,7 +88,7 @@ export async function getCoupangAdCost(): Promise<AdCostRow[]> {
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: "쿠팡!V2:W13",
+    range: "바질클럽 쿠팡!V2:W13",
   });
 
   const rows = response.data.values ?? [];
