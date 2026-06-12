@@ -78,6 +78,57 @@ export async function getCoupangData(): Promise<CoupangRow[]> {
     .filter((r) => r.매출 > 0);
 }
 
+export type NamyuRow = {
+  월: number;
+  상품명: string;
+  카테고리: string;
+  매출: number;
+  주문수: number;
+};
+
+export async function getNamyuData(): Promise<NamyuRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "남유에프엔씨 쿠팡!A2:N",
+  });
+
+  const rows = response.data.values ?? [];
+
+  return rows
+    .map((r) => {
+      const dateStr = String(r[0] ?? "");
+      const 월 = dateStr.length >= 6 ? Number(dateStr.slice(4, 6)) : 0;
+      return {
+        월,
+        상품명: String(r[4] ?? ""),
+        카테고리: String(r[10] ?? ""),
+        매출: Number(String(r[12] ?? "0").replace(/,/g, "")),
+        주문수: Number(String(r[13] ?? "0").replace(/,/g, "")),
+      };
+    })
+    .filter((r) => r.매출 > 0 && r.월 > 0);
+}
+
+export async function getNamyuAdCost(): Promise<AdCostRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "남유에프엔씨 쿠팡!AK2:AL13",
+  });
+
+  const rows = response.data.values ?? [];
+
+  return rows
+    .map((r) => ({
+      월: String(r[0] ?? ""),
+      광고비: Number(String(r[1] ?? "0").replace(/,/g, "")),
+    }))
+    .filter((r) => r.광고비 > 0);
+}
+
 export type AdCostRow = {
   월: string;
   광고비: number;

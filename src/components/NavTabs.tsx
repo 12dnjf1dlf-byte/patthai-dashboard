@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { label: "쿠팡", href: "/coupang" },
+  { label: "바질클럽 쿠팡", href: "/coupang" },
+  { label: "남유에프엔씨 쿠팡", href: "/namyu" },
 ];
 
 export default function NavTabs() {
