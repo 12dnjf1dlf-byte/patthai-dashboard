@@ -6,7 +6,7 @@ import { formatKRW } from "@/lib/format";
 import KpiCard from "@/components/KpiCard";
 import CoupangMonthlyChart from "@/components/CoupangMonthlyChart";
 import CategoryPie from "@/components/CategoryPie";
-import TopMenuChart from "@/components/TopMenuChart";
+import ProductMonthlyTable, { ProductMonthlyRow } from "@/components/ProductMonthlyTable";
 
 type Props = { rows: NamyuRow[]; adCosts: AdCostRow[] };
 
@@ -57,17 +57,17 @@ export default function NamyuDashboardClient({ rows, adCosts }: Props) {
     return Object.entries(map).sort(([, a], [, b]) => b - a).map(([category, value]) => ({ category, value }));
   }, [filtered]);
 
-  // TOP 20 (선택 월)
-  const topMenuData = useMemo(() => {
-    const map: Record<string, { sales: number; orders: number }> = {};
-    filtered.forEach((r) => {
-      if (!map[r.상품명]) map[r.상품명] = { sales: 0, orders: 0 };
-      map[r.상품명].sales += r.매출;
-      map[r.상품명].orders += r.주문수;
+  // 품목별 월별 수량 (전체 데이터 기준)
+  const productMonthlyData = useMemo((): ProductMonthlyRow[] => {
+    const map: Record<string, Record<number, number>> = {};
+    rows.forEach((r) => {
+      if (!map[r.상품명]) map[r.상품명] = {};
+      map[r.상품명][r.월] = (map[r.상품명][r.월] ?? 0) + r.주문수;
     });
-    return Object.entries(map).sort(([, a], [, b]) => b.sales - a.sales).slice(0, 20)
-      .map(([menu, { sales, orders }]) => ({ menu, value: sales, orders }));
-  }, [filtered]);
+    return Object.entries(map)
+      .map(([name, monthly]) => ({ name, monthly, total: Object.values(monthly).reduce((s, v) => s + v, 0) }))
+      .sort((a, b) => b.total - a.total);
+  }, [rows]);
 
   return (
     <>
@@ -98,7 +98,7 @@ export default function NamyuDashboardClient({ rows, adCosts }: Props) {
         <CategoryPie data={categoryData} />
       </div>
 
-      <TopMenuChart data={topMenuData} />
+      <ProductMonthlyTable data={productMonthlyData} />
     </>
   );
 }

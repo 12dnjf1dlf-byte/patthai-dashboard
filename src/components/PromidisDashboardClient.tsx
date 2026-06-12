@@ -6,7 +6,7 @@ import { formatKRW, formatKRWShort } from "@/lib/format";
 import KpiCard from "@/components/KpiCard";
 import YearCompareChart from "@/components/YearCompareChart";
 import CategoryPie from "@/components/CategoryPie";
-import TopMenuChart from "@/components/TopMenuChart";
+import ProductMonthlyTable, { ProductMonthlyRow } from "@/components/ProductMonthlyTable";
 
 type Props = { rows: PromidisFullRow[]; adCosts: AdCostRow[] };
 
@@ -47,16 +47,17 @@ export default function PromidisDashboardClient({ rows, adCosts }: Props) {
     return Object.entries(map).sort(([, a], [, b]) => b - a).map(([category, value]) => ({ category, value }));
   }, [filtered]);
 
-  const topMenuData = useMemo(() => {
-    const map: Record<string, { sales: number; orders: number }> = {};
-    filtered.forEach((r) => {
-      if (!map[r.상품명]) map[r.상품명] = { sales: 0, orders: 0 };
-      map[r.상품명].sales += r.매출;
-      map[r.상품명].orders += r.주문수;
+  const productMonthlyData = useMemo((): ProductMonthlyRow[] => {
+    // 2026 전체 기준
+    const map: Record<string, Record<number, number>> = {};
+    rows26.forEach((r) => {
+      if (!map[r.상품명]) map[r.상품명] = {};
+      map[r.상품명][r.월] = (map[r.상품명][r.월] ?? 0) + r.주문수;
     });
-    return Object.entries(map).sort(([, a], [, b]) => b.sales - a.sales).slice(0, 20)
-      .map(([menu, { sales, orders }]) => ({ menu, value: sales, orders }));
-  }, [filtered]);
+    return Object.entries(map)
+      .map(([name, monthly]) => ({ name, monthly, total: Object.values(monthly).reduce((s, v) => s + v, 0) }))
+      .sort((a, b) => b.total - a.total);
+  }, [rows26]);
 
   return (
     <>
@@ -113,7 +114,7 @@ export default function PromidisDashboardClient({ rows, adCosts }: Props) {
       <div className="mb-6">
         <CategoryPie data={categoryData} />
       </div>
-      <TopMenuChart data={topMenuData} />
+      <ProductMonthlyTable data={productMonthlyData} title="품목별 월별 판매 수량 (2026)" />
     </>
   );
 }

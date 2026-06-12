@@ -8,7 +8,7 @@ import CoupangMonthlyChart from "@/components/CoupangMonthlyChart";
 import ChannelChart from "@/components/ChannelChart";
 import CategoryPie from "@/components/CategoryPie";
 import WeeklyTrendChart from "@/components/WeeklyTrendChart";
-import TopMenuChart from "@/components/TopMenuChart";
+import ProductMonthlyTable, { ProductMonthlyRow } from "@/components/ProductMonthlyTable";
 
 type Props = { rows: CoupangRow[]; adCosts: AdCostRow[] };
 
@@ -86,16 +86,18 @@ export default function CoupangDashboardClient({ rows, adCosts }: Props) {
     return Object.entries(map).sort(([a], [b]) => parseInt(a) - parseInt(b)).map(([week, ch]) => ({ week, ...ch }));
   }, [filtered]);
 
-  const topMenuData = useMemo(() => {
-    const map: Record<string, { sales: number; orders: number }> = {};
-    filtered.forEach((r) => {
-      if (!map[r.상품명]) map[r.상품명] = { sales: 0, orders: 0 };
-      map[r.상품명].sales += r.매출;
-      map[r.상품명].orders += r.주문수;
+  const productMonthlyData = useMemo((): ProductMonthlyRow[] => {
+    const map: Record<string, Record<number, number>> = {};
+    rows.forEach((r) => {
+      const m = parseMonth(r.월);
+      if (!m) return;
+      if (!map[r.상품명]) map[r.상품명] = {};
+      map[r.상품명][m] = (map[r.상품명][m] ?? 0) + r.주문수;
     });
-    return Object.entries(map).sort(([, a], [, b]) => b.sales - a.sales).slice(0, 20)
-      .map(([menu, { sales, orders }]) => ({ menu, value: sales, orders }));
-  }, [filtered]);
+    return Object.entries(map)
+      .map(([name, monthly]) => ({ name, monthly, total: Object.values(monthly).reduce((s, v) => s + v, 0) }))
+      .sort((a, b) => b.total - a.total);
+  }, [rows]);
 
   return (
     <>
@@ -135,8 +137,8 @@ export default function CoupangDashboardClient({ rows, adCosts }: Props) {
         <WeeklyTrendChart data={weeklyData} channels={methods} />
       </div>
 
-      {/* TOP 20 상품 */}
-      <TopMenuChart data={topMenuData} />
+      {/* 품목별 월별 수량 */}
+      <ProductMonthlyTable data={productMonthlyData} />
     </>
   );
 }
