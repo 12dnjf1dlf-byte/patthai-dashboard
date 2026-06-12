@@ -9,9 +9,14 @@ export default async function NutralabPage() {
   let adCosts: AdCostRow[] = [];
   let error = "";
   try {
-    [rows, adCosts] = await Promise.all([getNutralabData(), getNutralabAdCost()]);
+    rows = await getNutralabData();
   } catch (e) {
     error = e instanceof Error ? e.message : "데이터를 불러올 수 없습니다.";
+  }
+  try {
+    adCosts = await getNutralabAdCost();
+  } catch {
+    adCosts = [];
   }
 
   return (
