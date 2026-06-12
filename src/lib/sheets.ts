@@ -129,6 +129,41 @@ export async function getNamyuAdCost(): Promise<AdCostRow[]> {
     .filter((r) => r.광고비 > 0);
 }
 
+export type NamyuOrderRow = {
+  연도: number;
+  월: number;
+  상품명: string;
+  수량: number;
+  매출: number;
+};
+
+export async function getNamyuOrderData(): Promise<NamyuOrderRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "남유쿠팡 발주기준!A2:L",
+  });
+
+  const rows = response.data.values ?? [];
+
+  return rows
+    .map((r) => {
+      const dateStr = String(r[4] ?? "");
+      const match = dateStr.match(/^(\d{4})\/(\d{2})/);
+      const 연도 = match ? Number(match[1]) : 0;
+      const 월 = match ? Number(match[2]) : 0;
+      return {
+        연도,
+        월,
+        상품명: String(r[3] ?? ""),
+        수량: Number(String(r[7] ?? "0").replace(/,/g, "")),
+        매출: Number(String(r[11] ?? "0").replace(/,/g, "")),
+      };
+    })
+    .filter((r) => r.매출 > 0 && r.연도 > 0);
+}
+
 export type AdCostRow = {
   월: string;
   광고비: number;

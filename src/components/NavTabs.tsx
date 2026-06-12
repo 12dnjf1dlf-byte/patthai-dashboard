@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const TABS = [
   { label: "바질클럽 쿠팡", href: "/coupang" },
   { label: "남유에프엔씨 쿠팡", href: "/namyu" },
+  { label: "남유쿠팡 발주기준", href: "/order" },
 ];
 
 export default function NavTabs() {
