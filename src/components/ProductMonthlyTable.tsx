@@ -94,6 +94,9 @@ export default function ProductMonthlyTable({ data, title = "품목별 월별 �
                 style={{ color: sortCol === "total" ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)" }}>
                 <span className="flex items-center justify-end gap-1">합계 <SortIcon col="total" /></span>
               </th>
+              <th className="px-3 py-2.5 text-right text-xs font-semibold whitespace-nowrap" style={{ color: "rgba(255,255,255,0.4)" }}>
+                비중
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -110,28 +113,46 @@ export default function ProductMonthlyTable({ data, title = "품목별 월별 �
               <td className="px-3 py-2 text-right text-xs font-bold" style={{ color: "#00CFAA" }}>
                 {grandTotal.toLocaleString()}
               </td>
+              <td className="px-3 py-2 text-right text-xs font-bold" style={{ color: "#00CFAA" }}>
+                100%
+              </td>
             </tr>
 
             {filtered.length === 0 ? (
-              <tr><td colSpan={months.length + 2} className="px-3 py-8 text-center text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>검색 결과가 없습니다.</td></tr>
-            ) : filtered.map((row, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }} className="transition-colors hover:bg-white/5">
-                <td className="px-3 py-2 font-medium" style={{ color: "rgba(255,255,255,0.87)", maxWidth: 200, position: "sticky", left: 0, backgroundColor: "#1C1E2E" }}>
-                  <span className="block truncate text-xs" title={row.name}>{row.name}</span>
-                </td>
-                {months.map((m) => {
-                  const qty = row.monthly[m] ?? 0;
-                  return (
-                    <td key={m} className="px-3 py-2 text-right text-xs" style={{ color: qty > 0 ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)" }}>
-                      {qty > 0 ? qty.toLocaleString() : "-"}
-                    </td>
-                  );
-                })}
-                <td className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "#00CFAA" }}>
-                  {row.total.toLocaleString()}
-                </td>
-              </tr>
-            ))}
+              <tr><td colSpan={months.length + 3} className="px-3 py-8 text-center text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>검색 결과가 없습니다.</td></tr>
+            ) : filtered.map((row, i) => {
+              const share = grandTotal > 0 ? (row.total / grandTotal) * 100 : 0;
+              // 비중에 따라 막대 색상 강도
+              const barWidth = Math.min(100, share * 2);
+              return (
+                <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }} className="transition-colors hover:bg-white/5">
+                  <td className="px-3 py-2 font-medium" style={{ color: "rgba(255,255,255,0.87)", maxWidth: 200, position: "sticky", left: 0, backgroundColor: "#1C1E2E" }}>
+                    <span className="block truncate text-xs" title={row.name}>{row.name}</span>
+                  </td>
+                  {months.map((m) => {
+                    const qty = row.monthly[m] ?? 0;
+                    return (
+                      <td key={m} className="px-3 py-2 text-right text-xs" style={{ color: qty > 0 ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)" }}>
+                        {qty > 0 ? qty.toLocaleString() : "-"}
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2 text-right text-xs font-semibold" style={{ color: "#00CFAA" }}>
+                    {row.total.toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2 text-right text-xs" style={{ minWidth: 80 }}>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                        <div style={{ width: `${barWidth}%`, height: "100%", borderRadius: 2, background: "linear-gradient(90deg,#7B70EE,#00CFAA)" }} />
+                      </div>
+                      <span style={{ color: share >= 10 ? "#00CFAA" : "rgba(255,255,255,0.5)", fontWeight: share >= 10 ? 600 : 400, minWidth: 36, textAlign: "right" }}>
+                        {share.toFixed(1)}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
