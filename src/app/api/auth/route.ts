@@ -34,11 +34,23 @@ export async function POST(req: NextRequest) {
   }
 
   const cookieStore = await cookies();
+  // httpOnly: 미들웨어 인증용
   cookieStore.set(
     "dashboard_user",
     JSON.stringify({ name: user.name, tabs: user.tabs }),
     {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    }
+  );
+  // non-httpOnly: 클라이언트(NavTabs)에서 탭 목록 읽기용
+  cookieStore.set(
+    "dashboard_tabs",
+    user.tabs.join(","),
+    {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",

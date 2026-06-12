@@ -13,10 +13,9 @@ const ALL_TABS = [
 function getAllowedTabs(): string[] {
   if (typeof document === "undefined") return [];
   try {
-    const match = document.cookie.match(/dashboard_user=([^;]+)/);
+    const match = document.cookie.match(/dashboard_tabs=([^;]+)/);
     if (!match) return [];
-    const user = JSON.parse(decodeURIComponent(match[1]));
-    return user.tabs ?? [];
+    return decodeURIComponent(match[1]).split(",").filter(Boolean);
   } catch {
     return [];
   }
