@@ -3,8 +3,6 @@
 import { useMemo } from "react";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -12,7 +10,7 @@ import {
   BarChart,
   Bar,
   Cell,
-  CartesianGrid,
+  LabelList,
 } from "recharts";
 
 export type BrandMonthly = { month: number; sales: number };
@@ -175,29 +173,32 @@ export default function SummaryDashboardClient({ brands }: Props) {
         })}
       </div>
 
-      {/* 월별 매출 비교 라인 차트 */}
+      {/* 월별 매출 비교 바 차트 */}
       <div className="mb-6 rounded-2xl p-6" style={{ backgroundColor: "#1C1E2E" }}>
         <p className="mb-4 text-sm font-semibold" style={{ color: "rgba(255,255,255,0.87)" }}>월별 매출 추이 비교</p>
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <ResponsiveContainer width="100%" height={340}>
+            <BarChart data={chartData} margin={{ top: 28, right: 8, left: 0, bottom: 0 }} barCategoryGap="20%" barGap={2}>
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.4)" }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={(v) => formatKRW(v)} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} width={60} />
+              <YAxis tickFormatter={(v) => formatKRW(v)} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }} axisLine={false} tickLine={false} width={58} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 12, color: "rgba(255,255,255,0.6)", paddingTop: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} formatter={(v) => <span style={{ color: "rgba(255,255,255,0.55)" }}>{v}</span>} />
               {brands.map((b) => (
-                <Line
-                  key={b.shortName}
-                  type="monotone"
-                  dataKey={b.shortName}
-                  stroke={b.color}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: b.color, strokeWidth: 0 }}
-                  activeDot={{ r: 5 }}
-                />
+                <Bar key={b.shortName} dataKey={b.shortName} fill={b.color} radius={[4, 4, 0, 0]}>
+                  <LabelList
+                    dataKey={b.shortName}
+                    position="top"
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    formatter={(v: any) => {
+                      const n = Number(v);
+                      if (!n) return "";
+                      return `${(n / 1_000_000).toFixed(0)}백만`;
+                    }}
+                    style={{ fontSize: 9, fill: "rgba(255,255,255,0.55)", fontWeight: 600 }}
+                  />
+                </Bar>
               ))}
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
         ) : (
           <p className="py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>데이터가 없습니다.</p>
