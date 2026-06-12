@@ -22,7 +22,7 @@ export default function MonthlyChart({ data }: Props) {
       <p className="mb-4 text-sm font-semibold" style={{ color: "rgba(255,255,255,0.87)" }}>
         월별 매출 추이
       </p>
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={260} style={{ overflow: "visible" }}>
         <BarChart data={data} margin={{ top: 24, right: 4, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
