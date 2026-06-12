@@ -21,6 +21,8 @@ type DataItem = {
 
 type Props = {
   data: { month: string; 매출: number; 광고비: number; 광고비비중: number }[];
+  onMonthClick?: (month: string | null) => void;
+  selectedMonth?: string | null;
 };
 
 function formatM(v: number) {
@@ -57,7 +59,7 @@ function TopLabel(props: {
   );
 }
 
-export default function CoupangMonthlyChart({ data }: Props) {
+export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth }: Props) {
   const chartData: DataItem[] = data.map((d) => ({
     ...d,
     순매출: d.매출 - d.광고비,
@@ -79,9 +81,28 @@ export default function CoupangMonthlyChart({ data }: Props) {
             광고비
           </span>
         </div>
+        {selectedMonth && onMonthClick && (
+          <button
+            onClick={() => onMonthClick(null)}
+            className="ml-auto rounded-lg px-3 py-1 text-xs font-medium transition-all"
+            style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
+          >
+            전체 보기
+          </button>
+        )}
       </div>
       <ResponsiveContainer width="100%" height={300} style={{ overflow: "visible" }}>
-        <BarChart data={chartData} margin={{ top: 64, right: 4, left: 0, bottom: 0 }} stackOffset="none">
+        <BarChart
+          data={chartData}
+          margin={{ top: 64, right: 4, left: 0, bottom: 0 }}
+          stackOffset="none"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onClick={onMonthClick ? (e: any) => {
+            const month = e?.activePayload?.[0]?.payload?.month as string | undefined;
+            if (month) onMonthClick(selectedMonth === month ? null : month);
+          } : undefined}
+          style={onMonthClick ? { cursor: "pointer" } : undefined}
+        >
           <defs>
             <linearGradient id="cpBarGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#00CFAA" />
@@ -108,12 +129,23 @@ export default function CoupangMonthlyChart({ data }: Props) {
           />
           {/* 순매출 바 (아래쪽) */}
           <Bar dataKey="순매출" stackId="a" radius={[0, 0, 0, 0]}>
-            {chartData.map((_, i) => (
-              <Cell key={i} fill="url(#cpBarGrad)" />
+            {chartData.map((d, i) => (
+              <Cell
+                key={i}
+                fill="url(#cpBarGrad)"
+                opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3}
+              />
             ))}
           </Bar>
           {/* 광고비 바 (위쪽, 노란색) + 커스텀 라벨 */}
-          <Bar dataKey="광고비" stackId="a" radius={[6, 6, 0, 0]} fill="#F59E0B">
+          <Bar dataKey="광고비" stackId="a" radius={[6, 6, 0, 0]}>
+            {chartData.map((d, i) => (
+              <Cell
+                key={i}
+                fill="#F59E0B"
+                opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3}
+              />
+            ))}
             <LabelList
               content={(props) => (
                 <TopLabel
