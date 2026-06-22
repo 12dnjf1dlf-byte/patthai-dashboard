@@ -285,6 +285,28 @@ export async function getPromidisAdCost(): Promise<AdCostRow[]> {
     .filter((r) => r.광고비 > 0);
 }
 
+export type PromidisAdCostFullRow = { 연도: number; 월: number; 광고비: number };
+
+export async function getPromidisAdCostFull(): Promise<PromidisAdCostFullRow[]> {
+  const sheets = google.sheets({ version: "v4", auth: getAuth() });
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: "프롬디스 쿠팡!V2:W20",
+  });
+  const rows = response.data.values ?? [];
+  return rows
+    .map((r) => {
+      const label = String(r[0] ?? "");
+      const m = label.match(/(\d{4})년\s*(\d+)월/);
+      return {
+        연도: m ? Number(m[1]) : 0,
+        월: m ? Number(m[2]) : 0,
+        광고비: Number(String(r[1] ?? "0").replace(/,/g, "")),
+      };
+    })
+    .filter((r) => r.연도 > 0 && r.월 > 0);
+}
+
 export async function getCoupangAdData(): Promise<AdRow[]> {
   const sheets = google.sheets({ version: "v4", auth: getAuth() });
 

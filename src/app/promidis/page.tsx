@@ -1,4 +1,4 @@
-import { getPromidisFullData, getPromidisAdCost, PromidisFullRow, AdCostRow } from "@/lib/sheets";
+import { getPromidisFullData, getPromidisAdCostFull, PromidisFullRow, PromidisAdCostFullRow } from "@/lib/sheets";
 import NavTabs from "@/components/NavTabs";
 import PromidisDashboardClient from "@/components/PromidisDashboardClient";
 
@@ -6,10 +6,10 @@ export const revalidate = 3600;
 
 export default async function PromidisPage() {
   let rows: PromidisFullRow[] = [];
-  let adCosts: AdCostRow[] = [];
+  let adCosts: PromidisAdCostFullRow[] = [];
   let error = "";
   try {
-    [rows, adCosts] = await Promise.all([getPromidisFullData(), getPromidisAdCost()]);
+    [rows, adCosts] = await Promise.all([getPromidisFullData(), getPromidisAdCostFull()]);
   } catch (e) {
     error = e instanceof Error ? e.message : "데이터를 불러올 수 없습니다.";
   }
@@ -25,7 +25,7 @@ export default async function PromidisPage() {
         </div>
       </div>
       {error && <div className="mb-6 rounded-xl border border-pink-500/30 bg-pink-500/10 p-4 text-sm text-pink-400">{error}</div>}
-      <PromidisDashboardClient rows={rows} adCosts={adCosts} />
+      <PromidisDashboardClient rows={rows} adCostsFull={adCosts} />
     </main>
   );
 }
