@@ -26,7 +26,6 @@ export function middleware(req: NextRequest) {
   }
 
   // 탭별 권한 체크
-  const pathname = req.nextUrl.pathname;
   const requiredTab = TAB_ROUTES[pathname];
 
   if (requiredTab) {
