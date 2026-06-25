@@ -48,7 +48,9 @@ export default function NavTabs() {
     }
   }, [router]);
 
-  const visibleTabs = ALL_TABS.filter((t) => allowedTabs.includes(t.key));
+  // "namyu"는 공개 탭 — 로그인 여부 관계없이 항상 표시
+  const PUBLIC_KEYS = ["namyu"];
+  const visibleTabs = ALL_TABS.filter((t) => PUBLIC_KEYS.includes(t.key) || allowedTabs.includes(t.key));
 
   if (visibleTabs.length === 0) return null;
 

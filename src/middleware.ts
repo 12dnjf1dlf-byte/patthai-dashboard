@@ -3,14 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 const TAB_ROUTES: Record<string, string> = {
   "/coupang": "coupang",
   "/ad": "ad",
-  "/namyu": "namyu",
   "/order": "order",
   "/nutralap": "nutralap",
   "/promidis": "promidis",
   "/summary": "summary",
 };
 
+// 로그인 없이 공개 접근 허용 경로
+const PUBLIC_PATHS = ["/namyu"];
+
 export function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  if (PUBLIC_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
+
   const userCookie = req.cookies.get("dashboard_user")?.value;
 
   if (!userCookie) {
