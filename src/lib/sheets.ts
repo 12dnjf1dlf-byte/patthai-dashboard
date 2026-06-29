@@ -79,6 +79,7 @@ export async function getCoupangData(): Promise<CoupangRow[]> {
 }
 
 export type NamyuRow = {
+  연도: number;
   월: number;
   상품명: string;
   카테고리: string;
@@ -99,8 +100,10 @@ export async function getNamyuData(): Promise<NamyuRow[]> {
   return rows
     .map((r) => {
       const dateStr = String(r[0] ?? "");
+      const 연도 = dateStr.length >= 4 ? Number(dateStr.slice(0, 4)) : 0;
       const 월 = dateStr.length >= 6 ? Number(dateStr.slice(4, 6)) : 0;
       return {
+        연도,
         월,
         상품명: String(r[4] ?? ""),
         카테고리: String(r[10] ?? ""),
@@ -108,7 +111,7 @@ export async function getNamyuData(): Promise<NamyuRow[]> {
         주문수: Number(String(r[13] ?? "0").replace(/,/g, "")),
       };
     })
-    .filter((r) => r.매출 > 0 && r.월 > 0);
+    .filter((r) => r.매출 > 0 && r.월 > 0 && r.연도 > 0);
 }
 
 export async function getNamyuAdCost(): Promise<AdCostRow[]> {
@@ -181,13 +184,13 @@ export type AdRow = {
   주문수14: number;
 };
 
-function parseYearMonth(str: string): { 월: number } {
-  // "2026년 1월" → 1
-  const m = str.match(/(\d+)년\s*(\d+)월/);
-  if (m) return { 월: Number(m[2]) };
-  // fallback: 기존 "20260101" 형식
-  if (str.length >= 6) return { 월: Number(str.slice(4, 6)) };
-  return { 월: 0 };
+function parseYearMonth(str: string): { 연도: number; 월: number } {
+  // "2026년 1월" → { 연도: 2026, 월: 1 }
+  const m = str.match(/(\d{4})년\s*(\d+)월/);
+  if (m) return { 연도: Number(m[1]), 월: Number(m[2]) };
+  // "20260101" 형식
+  if (str.length >= 6) return { 연도: Number(str.slice(0, 4)), 월: Number(str.slice(4, 6)) };
+  return { 연도: 0, 월: 0 };
 }
 
 export type NutralabRow = NamyuRow;
@@ -201,13 +204,17 @@ export async function getNutralabData(): Promise<NutralabRow[]> {
   });
   const rows = response.data.values ?? [];
   return rows
-    .map((r) => ({
-      월: parseYearMonth(String(r[0] ?? "")).월,
-      상품명: String(r[3] ?? ""),
-      카테고리: String(r[5] ?? ""),
-      매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
-      주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
-    }))
+    .map((r) => {
+      const { 연도, 월 } = parseYearMonth(String(r[0] ?? ""));
+      return {
+        연도,
+        월,
+        상품명: String(r[3] ?? ""),
+        카테고리: String(r[5] ?? ""),
+        매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
+        주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
+      };
+    })
     .filter((r) => r.매출 > 0 && r.월 > 0);
 }
 
@@ -231,13 +238,17 @@ export async function getPromidisData(): Promise<PromidisRow[]> {
   });
   const rows = response.data.values ?? [];
   return rows
-    .map((r) => ({
-      월: parseYearMonth(String(r[0] ?? "")).월,
-      상품명: String(r[3] ?? ""),
-      카테고리: String(r[5] ?? ""),
-      매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
-      주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
-    }))
+    .map((r) => {
+      const { 연도, 월 } = parseYearMonth(String(r[0] ?? ""));
+      return {
+        연도,
+        월,
+        상품명: String(r[3] ?? ""),
+        카테고리: String(r[5] ?? ""),
+        매출: Number(String(r[7] ?? "0").replace(/,/g, "")),
+        주문수: Number(String(r[16] ?? "0").replace(/,/g, "")),
+      };
+    })
     .filter((r) => r.매출 > 0 && r.월 > 0);
 }
 
