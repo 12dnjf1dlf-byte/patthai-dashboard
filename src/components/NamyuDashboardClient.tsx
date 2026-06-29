@@ -13,6 +13,9 @@ type Props = {
   adCosts: AdCostRow[];
   targets?: Record<number, number>;
   seasonLabels?: Record<number, string>;
+  prevYearSales?: Record<number, number>;
+  prevYear?: number;
+  curYear?: number;
 };
 
 function formatOk(v: number) {
@@ -21,15 +24,16 @@ function formatOk(v: number) {
   return `${(v / 1_0000).toFixed(0)}만`;
 }
 
-export default function NamyuDashboardClient({ rows, adCosts, targets, seasonLabels }: Props) {
+export default function NamyuDashboardClient({ rows, adCosts, targets, seasonLabels, prevYearSales, prevYear: prevYearProp, curYear: curYearProp }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const allYears = useMemo(() => [...new Set(rows.map((r) => r.연도).filter(Boolean))].sort(), [rows]);
-  const curYear = allYears[allYears.length - 1] ?? 2026;
-  const prevYear = allYears.length >= 2 ? allYears[allYears.length - 2] : null;
+  const curYear = curYearProp ?? allYears[allYears.length - 1] ?? 2026;
+  const prevYear = prevYearProp ?? (allYears.length >= 2 ? allYears[allYears.length - 2] : null);
 
   const curRows = useMemo(() => rows.filter((r) => r.연도 === curYear), [rows, curYear]);
-  const prevRows = useMemo(() => prevYear ? rows.filter((r) => r.연도 === prevYear) : [], [rows, prevYear]);
+  // prevRows from sheet (if exists), else empty
+  const prevRowsFromSheet = useMemo(() => prevYear ? rows.filter((r) => r.연도 === prevYear) : [], [rows, prevYear]);
 
   const filtered = useMemo(
     () => selectedMonth ? curRows.filter((r) => `${r.월}월` === selectedMonth) : curRows,
@@ -65,26 +69,32 @@ export default function NamyuDashboardClient({ rows, adCosts, targets, seasonLab
     return result;
   }, [actualByMonth, adCostMap, targets]);
 
+  // 전년도 월별 맵: 시트 데이터 우선, 없으면 하드코딩 값 사용
+  const prevByMonth = useMemo(() => {
+    if (prevRowsFromSheet.length > 0) {
+      const map: Record<number, number> = {};
+      prevRowsFromSheet.forEach((r) => { map[r.월] = (map[r.월] ?? 0) + r.매출; });
+      return map;
+    }
+    return prevYearSales ?? {};
+  }, [prevRowsFromSheet, prevYearSales]);
+
+  // 전년도 라인 (차트용)
   const prevYearLine = useMemo(() => {
-    if (prevRows.length === 0) return undefined;
-    const map: Record<number, number> = {};
-    prevRows.forEach((r) => { map[r.월] = (map[r.월] ?? 0) + r.매출; });
-    return Object.entries(map)
+    const entries = Object.entries(prevByMonth);
+    if (entries.length === 0) return undefined;
+    return entries
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([m, sales]) => ({ month: `${m}월`, sales }));
-  }, [prevRows]);
+  }, [prevByMonth]);
 
-  const prevByMonth = useMemo(() => {
-    const map: Record<number, number> = {};
-    prevRows.forEach((r) => { map[r.월] = (map[r.월] ?? 0) + r.매출; });
-    return map;
-  }, [prevRows]);
-
+  // KPI
   const totalSales = filtered.reduce((s, r) => s + r.매출, 0);
   const totalOrders = filtered.reduce((s, r) => s + r.주문수, 0);
   const avgPrice = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
-  const prevTotalSales = prevRows.reduce((s, r) => s + r.매출, 0);
-  const yoyGrowth = prevTotalSales > 0 ? ((totalSales - prevTotalSales) / prevTotalSales) * 100 : null;
+  const prevTotalSales = Object.values(prevByMonth).reduce((s, v) => s + v, 0);
+  const hasPrevData = prevTotalSales > 0;
+  const yoyGrowth = hasPrevData ? ((totalSales - prevTotalSales) / prevTotalSales) * 100 : null;
 
   const growthRate = useMemo(() => {
     const cur = selectedMonth ? Number(selectedMonth.replace("월", "")) : null;
@@ -155,7 +165,7 @@ export default function NamyuDashboardClient({ rows, adCosts, targets, seasonLab
         </div>
       )}
 
-      {prevYear ? (
+      {hasPrevData ? (
         <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
           <KpiCard title={`${prevYear} 총 매출`} value={formatKRW(prevTotalSales)} />
           <KpiCard title={`${curYear} 총 매출`} value={formatKRW(totalSales)} />
@@ -183,7 +193,7 @@ export default function NamyuDashboardClient({ rows, adCosts, targets, seasonLab
         />
       </div>
 
-      {prevYear && (
+      {hasPrevData && (
         <div className="mb-6 overflow-hidden rounded-2xl" style={{ backgroundColor: "#1C1E2E" }}>
           <div className="px-6 pt-5 pb-3">
             <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.87)" }}>
