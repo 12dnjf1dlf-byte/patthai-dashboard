@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   ComposedChart,
@@ -19,10 +19,11 @@ type DataItem = {
   광고비비중: number;
   순매출: number;
   전년매출?: number | null;
+  isTarget?: boolean;
 };
 
 type Props = {
-  data: { month: string; 매출: number; 광고비: number; 광고비비중: number }[];
+  data: { month: string; 매출: number; 광고비: number; 광고비비중: number; isTarget?: boolean }[];
   onMonthClick?: (month: string | null) => void;
   selectedMonth?: string | null;
   prevYearLine?: { month: string; sales: number }[];
@@ -42,6 +43,15 @@ function TopLabel(props: {
   const item = data[index];
   if (!item) return null;
   const cx = x + width / 2;
+  if (item.isTarget) {
+    return (
+      <g>
+        <text x={cx} y={y - 16} textAnchor="middle" fontSize={10} fill="#A78BFA" fontWeight={600}>
+          목표 {formatM(item.매출)}
+        </text>
+      </g>
+    );
+  }
   return (
     <g>
       <text x={cx} y={y - 44} textAnchor="middle" fontSize={11} fontWeight={700} fill="#ffffff" opacity={0.9}>
@@ -58,16 +68,16 @@ function TopLabel(props: {
 }
 
 export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth, prevYearLine, prevYearLabel = "전년도" }: Props) {
-  // prevYearLine 데이터를 month 기준으로 매핑
   const prevMap = new Map(prevYearLine?.map((p) => [p.month, p.sales]) ?? []);
 
   const chartData: DataItem[] = data.map((d) => ({
     ...d,
-    순매출: d.매출 - d.광고비,
+    순매출: d.isTarget ? d.매출 : d.매출 - d.광고비,
     전년매출: prevMap.get(d.month) ?? null,
   }));
 
   const hasPrevYear = (prevYearLine?.length ?? 0) > 0;
+  const hasTarget = data.some(d => d.isTarget);
 
   return (
     <div className="rounded-2xl p-6" style={{ backgroundColor: "#1C1E2E" }}>
@@ -84,6 +94,12 @@ export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth,
             <span className="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400" />
             광고비
           </span>
+          {hasTarget && (
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "rgba(167,139,250,0.5)" }} />
+              목표
+            </span>
+          )}
           {hasPrevYear && (
             <span className="flex items-center gap-1">
               <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "#A78BFA" }} />
@@ -102,7 +118,6 @@ export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth,
         <ComposedChart
           data={chartData}
           margin={{ top: 64, right: 4, left: 0, bottom: 0 }}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onClick={onMonthClick ? (e: any) => {
             const month = e?.activePayload?.[0]?.payload?.month as string | undefined;
             if (month) onMonthClick(selectedMonth === month ? null : month);
@@ -120,21 +135,28 @@ export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth,
           <Tooltip
             formatter={(v, name) => {
               if (name === "전년매출") return [formatM(Number(v)), prevYearLabel];
+              if (name === "순매출") return [formatM(Number(v)), "순매출 (실적)"];
               return [formatM(Number(v)), name === "순매출" ? "순매출" : "광고비"];
             }}
             contentStyle={{ backgroundColor: "#1C1E2E", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
             labelStyle={{ color: "rgba(255,255,255,0.87)" }}
           />
-          {/* 순매출 바 (아래) */}
           <Bar dataKey="순매출" stackId="a" radius={[0, 0, 0, 0]}>
             {chartData.map((d, i) => (
-              <Cell key={i} fill="url(#cpBarGrad)" opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3} />
+              <Cell
+                key={i}
+                fill={d.isTarget ? "rgba(167,139,250,0.35)" : "url(#cpBarGrad)"}
+                opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3}
+              />
             ))}
           </Bar>
-          {/* 광고비 바 (위) + 라벨 */}
           <Bar dataKey="광고비" stackId="a" radius={[6, 6, 0, 0]}>
             {chartData.map((d, i) => (
-              <Cell key={i} fill="#F59E0B" opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3} />
+              <Cell
+                key={i}
+                fill={d.isTarget ? "rgba(167,139,250,0.0)" : "#F59E0B"}
+                opacity={!selectedMonth || d.month === selectedMonth ? 1 : 0.3}
+              />
             ))}
             <LabelList
               content={(props) => (
@@ -142,7 +164,6 @@ export default function CoupangMonthlyChart({ data, onMonthClick, selectedMonth,
               )}
             />
           </Bar>
-          {/* 전년도 라인 (옵션) */}
           {hasPrevYear && (
             <Line
               type="monotone"

@@ -4,6 +4,23 @@ import NamyuDashboardClient from "@/components/NamyuDashboardClient";
 
 export const revalidate = 3600;
 
+// 2026 하반기 목표 매출 (실적 없는 달에만 표시)
+const TARGETS_2026: Record<number, number> = {
+  7: 350_000_000,
+  8: 300_000_000,
+  9: 400_000_000,
+  10: 450_000_000,
+  11: 500_000_000,
+  12: 550_000_000,
+};
+
+const SEASON_LABELS: Record<number, string> = {
+  1: "보충 성수기", 2: "보충 성수기", 3: "선케어 개막",
+  4: "선케어 성수기", 5: "선케어 피크", 6: "선케어 마무리",
+  7: "전카테고리 비수기", 8: "전카테고리 비수기", 9: "보충 개막",
+  10: "보충 성수기", 11: "보충 성수기", 12: "보충 피크",
+};
+
 export default async function NamyuPage() {
   let rows: NamyuRow[] = [];
   let adCosts: AdCostRow[] = [];
@@ -24,7 +41,7 @@ export default async function NamyuPage() {
         </div>
       </div>
       {error && <div className="mb-6 rounded-xl border border-pink-500/30 bg-pink-500/10 p-4 text-sm text-pink-400">{error}</div>}
-      <NamyuDashboardClient rows={rows} adCosts={adCosts} />
+      <NamyuDashboardClient rows={rows} adCosts={adCosts} targets={TARGETS_2026} seasonLabels={SEASON_LABELS} />
     </main>
   );
 }
